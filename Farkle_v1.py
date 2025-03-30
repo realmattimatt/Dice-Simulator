@@ -19,31 +19,32 @@ class Player:
         counts = Counter(dice)
         values = list(counts.values())
         
-        score = 0
         
     # Rule: 1 - 6 straight    
         if sorted(dice) == [1, 2, 3, 4, 5, 6]:
-            score += 3000
+            return 3000
         
     # Rule: 6 of a kind
         if 6 in values:
-            score += 3000
+            return 3000
     
     # Rule: Two triplets (e.g. 2,2,2, 5,5,5)
         if sorted(values) == [3, 3]:
-            score += 2500
+            return 2500
         
     # Rule: Five of a kind
         if 5 in values:
-            score += 2000
+            return 2000
 
     # Rule: Three pairs (e.g. 1,1,3,3,6,6)
         if sorted(values) == [2, 2, 2]:
-            score += 1500
+            return 1500
         
     # Rule: 4 of any number and a pair
         if sorted(values) == [2 , 4]:
-            score += 1500
+            return 1500
+        
+        score = 0
         
     # Rule: Four of a kind
         if 4 in values:
@@ -57,6 +58,7 @@ class Player:
                 else:
                     score += num * 100
                 counts[num] -= 3
+                
     # Rule: Single or double one's and five's
         # Rule: Single 1s and 5s (outside of triplets)
         score += counts[1] * 100
@@ -135,21 +137,25 @@ def roll_dice():
             # Final roll
             player.roll_dice()
             os.system('cls' if os.name == 'nt' else 'clear')
-            print(f"{player.name} rolled: {player.dice}\n")
+            print(f"\n{player.name} rolled: {player.dice}\n")
             for line in zip(*(dice_drawing[d] for d in player.dice)):
                 print("   ".join(line))
-            player.score = Player.calculate_score(player.dice)
-            print(f"\n{player.name}'s score this round: {player.score}")
+
+            round_score = Player.calculate_score(player.dice)
+            player.score += round_score
+            print(f"\n{player.name}'s score this round: {round_score}")
+            print(f"{player.name}'s total score: {player.score}")
+
             input("\nPress Enter to continue to the next player...")
 
-
+            
         roll = input("\nRoll again? (Yes / No): ")
 
-
-    print("\nFinal Dice Results:")
+    # Final scoreboard
+    print("\nFinal Scores:")
     for player in players:
-        print(f"{player.name}: {player.dice}")
+        print(f"{player.name}: {player.score} points")
 
     print("\nThanks for playing!")
-
+    
 roll_dice()
