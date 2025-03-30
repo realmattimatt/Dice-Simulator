@@ -1,18 +1,12 @@
 import random
-# Symbols to make dice
-# Alt 196 ─
-# Alt 217 ┘
-# Alt 218 ┌
-# Alt 191 ┐
-# Alt 192 └
-# Alt 179 │
-# Alt 9   ○ 
+import time
+import os
 
 def roll_dice():
     dice_drawing = {
         1: (
             "┌─────────┐",
-            "│    1    │",
+            "│         │",
             "│    ○    │",
             "│         │",
             "└─────────┘",
@@ -20,13 +14,13 @@ def roll_dice():
         2: (
             "┌─────────┐",
             "│  ○      │",
-            "│    2    │",
+            "│         │",
             "│      ○  │",
             "└─────────┘",
         ),
         3: (
             "┌─────────┐",
-            "│  ○ 3    │",
+            "│  ○      │",
             "│    ○    │",
             "│      ○  │",
             "└─────────┘",
@@ -34,13 +28,13 @@ def roll_dice():
         4: (
             "┌─────────┐",
             "│  ○   ○  │",
-            "│    4    │",
+            "│         │",
             "│  ○   ○  │",
             "└─────────┘",
         ),
         5: (
             "┌─────────┐",
-            "│  ○ 5 ○  │",
+            "│  ○   ○  │",
             "│    ○    │",
             "│  ○   ○  │",
             "└─────────┘",
@@ -48,21 +42,39 @@ def roll_dice():
         6: (
             "┌─────────┐",
             "│  ○   ○  │",
-            "│  ○ 6 ○  │",
+            "│  ○   ○  │",
             "│  ○   ○  │",
             "└─────────┘",
         )
     }
-    roll = input("Roll the dice? (Yes or No): ")
-    while roll.lower() == "Yes".lower():
-        dice1 = random.randint(1,6)
-        dice2 = random.randint(1,6)
-        dice3 = random.randint(1,6)
-        print(f"dice rolled: {dice1} and {dice2} and {dice3}")
-        print("\n".join(dice_drawing[dice1]))
-        print("\n".join(dice_drawing[dice2]))
-        print("\n".join(dice_drawing[dice3]))
-        roll = input("Roll again? (Yes / NO): ")
 
-        
+    roll = input("Roll the dice? (Yes or No): ")
+    while roll.strip().lower() in ("yes", "y"):
+        # Dice roll animation
+        for _ in range(5):
+            temp1 = random.randint(1, 6)
+            temp2 = random.randint(1, 6)
+            temp3 = random.randint(1, 6)
+            temp4 = random.randint(1, 6)
+            os.system('cls' if os.name == 'nt' else 'clear')  # clear screen
+            print("Rolling...")
+            for l1, l2, l3, l4 in zip(dice_drawing[temp1], dice_drawing[temp2], dice_drawing[temp3], dice_drawing[temp4]):
+                print(f"{l1}   {l2}   {l3}   {l4}")
+            time.sleep(0.2)
+
+        # Final result
+        dice1 = random.randint(1, 6)
+        dice2 = random.randint(1, 6)
+        dice3 = random.randint(1, 6)
+        dice4 = random.randint(1, 6)
+
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(f"You rolled: {dice1}, {dice2}, {dice3}, {dice4}\n")
+        for l1, l2, l3, l4 in zip(dice_drawing[dice1], dice_drawing[dice2], dice_drawing[dice3], dice_drawing[dice4]):
+            print(f"{l1}   {l2}   {l3}   {l4}")
+
+        roll = input("\nRoll again? (Yes / No): ")
+
+    print("\nThanks for playing!")
+
 roll_dice()
