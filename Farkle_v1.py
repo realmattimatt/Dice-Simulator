@@ -10,6 +10,7 @@ class Player:
         self.name = name
         self.dice = []
         self.score = 0
+        self.round_scores = []
 
     def roll_dice(self, num_dice=6):
         self.dice = [random.randint(1, 6) for _ in range(num_dice)]
@@ -31,10 +32,6 @@ class Player:
     # Rule: Two triplets (e.g. 2,2,2, 5,5,5)
         if sorted(values) == [3, 3]:
             return 2500
-        
-    # Rule: Five of a kind
-        if 5 in values:
-            return 2000
 
     # Rule: Three pairs (e.g. 1,1,3,3,6,6)
         if sorted(values) == [2, 2, 2]:
@@ -45,10 +42,18 @@ class Player:
             return 1500
         
         score = 0
-        
+    
+    # Rule: Five of a kind
+        for num, count in list(counts.items()):
+            if count == 5:
+                score += 2000
+                counts[num] -= 5  # Important to avoid double-scoring
+     
     # Rule: Four of a kind
-        if 4 in values:
-            score += 1000
+        for num, count in list(counts.items()):
+            if count >= 4:
+                score += 1000
+                counts[num] -= 4
             
     # Rule: Three of a kind
         for num, count in counts.items():
@@ -143,6 +148,7 @@ def roll_dice():
 
             round_score = Player.calculate_score(player.dice)
             player.score += round_score
+            player.round_scores.append(round_score)
             print(f"\n{player.name}'s score this round: {round_score}")
             print(f"{player.name}'s total score: {player.score}")
 
@@ -152,9 +158,31 @@ def roll_dice():
         roll = input("\nRoll again? (Yes / No): ")
 
     # Final scoreboard
-    print("\nFinal Scores:")
-    for player in players:
-        print(f"{player.name}: {player.score} points")
+    print("\nFinal Scores by Round:")
+    max_rounds = max(len(p.round_scores) for p in players)
+    header = "Round\t" + "\t".join(player.name for player in players)
+    print(header)
+    print("-" * len(header.expandtabs()))
+        
+    # Print each round side by side
+    for round_num in range(max_rounds):
+        row = f"{round_num + 1}\t"
+        for player in players:
+             # Get score for this round or blank if no score
+            if round_num < len(player.round_scores):
+                row += f"{player.round_scores[round_num]}\t"
+            else:
+                row += " \t"
+        print(row)
+    
+    
+    print("-" * len(header.expandtabs()))
+    totals = "Total\t" + "\t".join(str(p.score) for p in players)
+    print(totals)
+    # for player in players:
+    #     print(f"\n{player.name}: Total = {player.score} points")
+    #     for i, score in enumerate(player.round_scores, 1):
+    #         print(f"  Round {i}: {score}")
 
     print("\nThanks for playing!")
     
