@@ -3,6 +3,8 @@ import time
 import os
 from collections import Counter
 
+WINNING_SCORE = 10000
+
 
 # Define Player class
 class Player:
@@ -232,7 +234,20 @@ def roll_dice():
             round_score = player_turn(player)
             player.score += round_score
             player.round_scores.append(round_score)
+            if player.score >= WINNING_SCORE:
+                print(f"\n🏆 {player.name} wins the game with {player.score} points!")
+                print("\nFinal Scoreboard:\n")
+                # Optional: display scoreboard before exiting
+                show_scoreboard(players)
+                return  # Ends the game
+
             print(f"\n{player.name}'s total score: {player.score}")
+            # Show current leaderboard
+            sorted_players = sorted(players, key=lambda p: p.score, reverse=True)
+            print("\n📊 Current Leaderboard:")
+            for rank, p in enumerate(sorted_players, 1):
+                print(f"{rank}. {p.name} - {p.score} points")
+
 
 
             input("\nPress Enter to continue to the next player...")
@@ -309,5 +324,25 @@ def player_turn(player):
         if choice != 'r':
             print(f"{player.name} banks {turn_points} points.")
             return turn_points
+
+def show_scoreboard(players):
+    max_rounds = max(len(p.round_scores) for p in players)
+    header = "Round\t" + "\t".join(player.name for player in players)
+    print(header)
+    print("-" * len(header.expandtabs()))
+
+    for round_num in range(max_rounds):
+        row = f"{round_num + 1}\t"
+        for player in players:
+            if round_num < len(player.round_scores):
+                row += f"{player.round_scores[round_num]}\t"
+            else:
+                row += " \t"
+        print(row)
+
+    print("-" * len(header.expandtabs()))
+    totals = "Total\t" + "\t".join(str(p.score) for p in players)
+    print(totals)
+
 
 roll_dice()
