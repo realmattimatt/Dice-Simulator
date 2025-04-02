@@ -1,9 +1,9 @@
 # Dice-Simulator
-## Created  with help from multiple sources.
+## **Created  with help from multiple sources**
 ## **Table of Contents**
 
 - [Dice-Simulator](#dice-simulator)
-  - [Created  with help from multiple sources.](#created--with-help-from-multiple-sources)
+  - [**Created  with help from multiple sources**](#created--with-help-from-multiple-sources)
   - [**Table of Contents**](#table-of-contents)
   - [**Project Overview**](#project-overview)
   - [**Features**](#features)
