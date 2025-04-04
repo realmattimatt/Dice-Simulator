@@ -2,6 +2,14 @@ import random
 import time
 import os
 from collections import Counter
+import difflib
+
+def is_yes(text):
+    return difflib.get_close_matches(text.lower(), ["yes", "y"], n=1, cutoff=0.6)
+
+def is_no(text):
+    return difflib.get_close_matches(text.lower(), ["no", "n"], n=1, cutoff=0.6)
+
 
 WINNING_SCORE = 10000
 
@@ -218,34 +226,43 @@ def roll_dice():
     for i in range(num_players):
         name = input(f"Enter name for Player {i+1}: ")
         players.append(Player(name))
-    roll = input("Roll the dice? (Yes or No): ")
-    while roll.strip().lower() in ("yes", "y"):
-        for player in players:
 
+    roll = input("Roll the dice? (Yes or No): ")
+
+    while is_yes(roll):  # ✅ More flexible input handling
+        for player in players:
             # Final roll
             round_score = player_turn(player)
             player.score += round_score
             player.round_scores.append(round_score)
+
             if player.score >= WINNING_SCORE:
                 print(f"\n🏆 {player.name} wins the game with {player.score} points!")
                 print("\nFinal Scoreboard:\n")
-                # Optional: display scoreboard before exiting
                 show_scoreboard(players)
-                return  # Ends the game
+                return
 
             print(f"\n{player.name}'s total score: {player.score}")
-            # Show current leaderboard
             sorted_players = sorted(players, key=lambda p: p.score, reverse=True)
             print("\n📊 Current Leaderboard:")
             for rank, p in enumerate(sorted_players, 1):
                 print(f"{rank}. {p.name} - {p.score} points")
 
-
-
             input("\nPress Enter to continue to the next player...")
 
-            
-        roll = input("\nRoll again? (Yes / No): ")
+        # ✅ Ask once per round, not per player
+        while True:
+            roll = input("\nWould you like to roll another round? (Yes / No): ").strip().lower()
+            if roll in ("yes", "y"):
+                break
+            elif roll in ("no", "n"):
+                roll = "no"
+                break
+            else:
+                print("❌ Invalid input. Please enter 'y', 'yes', 'n', or 'no'.")
+
+
+
 
     # Final scoreboard
     print("\nFinal Scores by Round:")
@@ -277,9 +294,10 @@ def player_turn(player):
     turn_points = 0
 
     while True:
-        # Animate rolling the correct number of dice
         print("\n🎲 Rolling...\n")
         time.sleep(0.5)
+
+        # Dice roll animation
         for _ in range(5):
             temps = [random.randint(1, 6) for _ in range(num_dice)]
             os.system('cls' if os.name == 'nt' else 'clear')
@@ -288,7 +306,7 @@ def player_turn(player):
                 print("   ".join(line))
             time.sleep(0.2)
 
-# Final roll
+        # Final roll
         roll = [random.randint(1, 6) for _ in range(num_dice)]
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{player.name} rolled: {roll}\n")
@@ -302,28 +320,88 @@ def player_turn(player):
             input("Press Enter to continue...")
             return 0
 
-        roll_score = Scorer.calculate_score(scoring_dice)
-        breakdown = Scorer.score_breakdown(scoring_dice)
+        print(f"Scoring Dice: {scoring_dice}")
+        if scoring_dice:
+            print("\n🎯 Scoring Dice Visuals:")
+            for line in zip(*(dice_drawing[d] for d in scoring_dice)):
+                print("   ".join(line))
 
         print("Breakdown:")
-        for line in breakdown:
+        for line in Scorer.score_breakdown(scoring_dice):
             print(f"  - {line}")
 
-        turn_points += roll_score
+        # NEW: Summary and autokeep prompt
+        summary = generate_roll_summary(roll)
+        print(f"You rolled: {summary}")
 
-        print(f"Scoring Dice: {scoring_dice}")
+        while True:
+            auto_choice = input("Would you like to autokeep all scoring dice? (y/n): ").strip().lower()
+            if auto_choice in ("y", "yes"):
+                chosen = scoring_dice.copy()
+                break
+            elif auto_choice in ("n", "no"):
+                # Manual selection loop
+                while True:
+                    chosen_input = input("Which dice would you like to keep? (e.g., 1 5 5): ").strip()
+                    try:
+                        chosen = list(map(int, chosen_input.split()))
+                    except ValueError:
+                        print("❌ Invalid input. Please enter numbers separated by spaces.")
+                        continue
+
+                    temp_scoring = scoring_dice.copy()
+                    valid = True
+                    for die in chosen:
+                        if die in temp_scoring:
+                            temp_scoring.remove(die)
+                        else:
+                            valid = False
+                            break
+
+                    if valid:
+                        break
+                    else:
+                        print("❌ Invalid selection! You can only choose from scoring dice.")
+                break
+            else:
+                print("❌ Please enter 'y', 'yes', 'n', or 'no'.")
+
+        roll_score = Scorer.calculate_score(chosen)
+        turn_points += roll_score
+        num_dice -= len(chosen)
+
+        print(f"\n✅ You kept: {chosen}")
         print(f"Points this roll: {roll_score}")
         print(f"Turn total so far: {turn_points}")
 
-        num_dice -= len(scoring_dice)
         if num_dice == 0:
             print("🔥 Hot dice! You get all 6 back.")
             num_dice = 6
 
-        choice = input("Roll again or bank points? (r/b): ").strip().lower()
-        if choice != 'r':
-            print(f"{player.name} banks {turn_points} points.")
-            return turn_points
+        while True:
+            choice = input("Roll again or bank points? (r/b): ").strip().lower()
+            if choice == 'r':
+                break  # Continue the loop to roll again
+            elif choice == 'b':
+                print(f"{player.name} banks {turn_points} points.")
+                return turn_points
+            else:
+                print("❌ Invalid input. Please enter 'r' to roll again or 'b' to bank your points.")
+
+
+
+        
+def generate_roll_summary(dice_roll):
+    from collections import Counter
+    counts = Counter(dice_roll)
+    face_names = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
+    summary = []
+    for face in sorted(counts.keys()):
+        count = counts[face]
+        word = face_names.get(face, str(face))
+        summary.append(f"{count} {word}" + ("s" if count > 1 else ""))
+    return ", ".join(summary)
+
 
 def show_scoreboard(players):
     max_rounds = max(len(p.round_scores) for p in players)
