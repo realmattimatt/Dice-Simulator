@@ -221,14 +221,6 @@ def roll_dice():
     roll = input("Roll the dice? (Yes or No): ")
     while roll.strip().lower() in ("yes", "y"):
         for player in players:
-            # Animate
-            for _ in range(5):
-                temps = [random.randint(1, 6) for _ in range(6)]
-                os.system('cls' if os.name == 'nt' else 'clear')
-                print(f"{player.name} is rolling...")
-                for line in zip(*(dice_drawing[t] for t in temps)):
-                    print("   ".join(line))
-                time.sleep(0.2)
 
             # Final roll
             round_score = player_turn(player)
@@ -276,10 +268,6 @@ def roll_dice():
     print("-" * len(header.expandtabs()))
     totals = "Total\t" + "\t".join(str(p.score) for p in players)
     print(totals)
-    # for player in players:
-    #     print(f"\n{player.name}: Total = {player.score} points")
-    #     for i, score in enumerate(player.round_scores, 1):
-    #         print(f"  Round {i}: {score}")
 
     print("\nThanks for playing!")
 
@@ -289,8 +277,19 @@ def player_turn(player):
     turn_points = 0
 
     while True:
-        roll = [random.randint(1, 6) for _ in range(num_dice)]
+        # Animate rolling the correct number of dice
+        print("\n🎲 Rolling...\n")
+        time.sleep(0.5)
+        for _ in range(5):
+            temps = [random.randint(1, 6) for _ in range(num_dice)]
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(f"{player.name} is rolling {num_dice} dice...")
+            for line in zip(*(dice_drawing[t] for t in temps)):
+                print("   ".join(line))
+            time.sleep(0.2)
 
+# Final roll
+        roll = [random.randint(1, 6) for _ in range(num_dice)]
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{player.name} rolled: {roll}\n")
         for line in zip(*(dice_drawing[d] for d in roll)):
@@ -305,6 +304,7 @@ def player_turn(player):
 
         roll_score = Scorer.calculate_score(scoring_dice)
         breakdown = Scorer.score_breakdown(scoring_dice)
+
         print("Breakdown:")
         for line in breakdown:
             print(f"  - {line}")
